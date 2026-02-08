@@ -1,9 +1,11 @@
 import 'dotenv/config';
-import { ValidationPipe } from '@nestjs/common';
-import { HttpAdapterHost, NestFactory } from '@nestjs/core';
+import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
+import { HttpAdapterHost, NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { PrismaClientExceptionFilter } from './prisma-client-exception/prisma-client-exception.filter';
+import { ArticleEntity } from './articles/entities/article.entity';
+import { UserEntity } from './users/entities/user.entity';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,13 +16,17 @@ async function bootstrap() {
     }),
   );
 
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+
   const config = new DocumentBuilder()
     .setTitle('Median')
     .setDescription('The Median API description')
     .setVersion('0.1')
     .build();
 
-  const document = SwaggerModule.createDocument(app, config);
+  const document = SwaggerModule.createDocument(app, config, {
+    extraModels: [ArticleEntity, UserEntity],
+  });
   SwaggerModule.setup('api', app, document);
 
   const httpAdapterHost = app.get(HttpAdapterHost);
@@ -28,4 +34,4 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 3000);
 }
-bootstrap();
+void bootstrap();

@@ -22,20 +22,23 @@ export class ArticlesController {
 
   @Post()
   @ApiCreatedResponse({ type: ArticleEntity })
-  create(@Body() createArticleDto: CreateArticleDto) {
-    return this.articlesService.create(createArticleDto);
+  async create(@Body() createArticleDto: CreateArticleDto) {
+    const article = await this.articlesService.create(createArticleDto);
+    return new ArticleEntity(article);
   }
 
   @Get()
   @ApiOkResponse({ type: ArticleEntity, isArray: true })
-  findAll() {
-    return this.articlesService.findAll();
+  async findAll() {
+    const articles = await this.articlesService.findAll();
+    return articles.map((article) => new ArticleEntity(article));
   }
 
   @Get('drafts')
   @ApiOkResponse({ type: ArticleEntity, isArray: true })
-  findDrafts() {
-    return this.articlesService.findDrafts();
+  async findDrafts() {
+    const articles = await this.articlesService.findDrafts();
+    return articles.map((article) => new ArticleEntity(article));
   }
 
   @Get(':id')
@@ -47,21 +50,23 @@ export class ArticlesController {
       throw new NotFoundException(`Article with ID ${id} does not exist.`);
     }
 
-    return article;
+    return new ArticleEntity(article);
   }
 
   @Patch(':id')
   @ApiOkResponse({ type: ArticleEntity })
-  update(
+  async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateArticleDto: UpdateArticleDto,
   ) {
-    return this.articlesService.update(id, updateArticleDto);
+    const article = await this.articlesService.update(id, updateArticleDto);
+    return new ArticleEntity(article);
   }
 
   @Delete(':id')
   @ApiOkResponse({ type: ArticleEntity })
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.articlesService.remove(id);
+  async remove(@Param('id', ParseIntPipe) id: number) {
+    const article = await this.articlesService.remove(id);
+    return new ArticleEntity(article);
   }
 }

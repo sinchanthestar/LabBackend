@@ -1,5 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Article } from '@prisma/client';
+import { Article, User } from '@prisma/client';
+import { UserEntity } from '../../users/entities/user.entity';
+
+type ArticleWithAuthor = Article & { author?: User | null };
 
 export class ArticleEntity implements Article {
   @ApiProperty()
@@ -17,9 +20,27 @@ export class ArticleEntity implements Article {
   @ApiProperty()
   published: boolean;
 
-  @ApiProperty()
+  @ApiProperty({ required: false, nullable: true })
+  authorId: number | null;
+
+  @ApiProperty({ required: false, nullable: true, type: () => UserEntity })
+  author?: UserEntity | null;
+
+  @ApiProperty({ type: String, format: 'date-time' })
   createdAt: Date;
 
-  @ApiProperty()
+  @ApiProperty({ type: String, format: 'date-time' })
   updatedAt: Date;
+
+  constructor(article: ArticleWithAuthor) {
+    this.id = article.id;
+    this.title = article.title;
+    this.description = article.description;
+    this.body = article.body;
+    this.published = article.published;
+    this.authorId = article.authorId;
+    this.author = article.author ? new UserEntity(article.author) : null;
+    this.createdAt = article.createdAt;
+    this.updatedAt = article.updatedAt;
+  }
 }
